@@ -1,0 +1,14 @@
+{
+    "name": "david2m/commander",
+    "description": "Centralised command handler with pre and post execution hooks.",
+    "require-dev": {
+        "phpunit/phpunit": "^5.3"
+    },
+    "authors": [
+        {
+            "name": "David2M",
+            "email": "david2m@hotmail.co.uk"
+        }
+    ],
+    "require": {}
+}
