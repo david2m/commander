@@ -25,32 +25,54 @@ class Commander
     {
         $this->onion = $onion;
     }
-    
+
+    /**
+     * @param HandlerInterface $handler
+     */
     public function addHandler(HandlerInterface $handler)
     {
         $this->handlers[$handler->getCommandName()] = $handler;
     }
 
+    /**
+     * @param MiddlewareInterface $middleware
+     */
     public function addMiddleware(MiddlewareInterface $middleware)
     {
         $this->onion->layer(new MiddlewareWrapper($middleware));
     }
 
+    /**
+     * @param PreTaskInterface $preTask
+     */
     public function addPreTask(PreTaskInterface $preTask)
     {
         $this->preTasks[] = $preTask;
     }
 
+    /**
+     * @param PostTaskInterface $postTask
+     */
     public function addPostTask(PostTaskInterface $postTask)
     {
         $this->postTasks[] = $postTask;
     }
 
+    /**
+     * @param ExceptionHandlerInterface $handler
+     */
     public function addExceptionHandler(ExceptionHandlerInterface $handler)
     {
         $this->exceptionHandlers[] = $handler;
     }
 
+    /**
+     * @param object $command
+     * @return mixed Value returned by the command handler
+     *
+     * @throws HandlerNotFoundException
+     * @throws \Exception
+     */
     public function execute($command)
     {
         $className = get_class($command);
@@ -76,6 +98,9 @@ class Commander
         }
     }
 
+    /**
+     * @param object $command
+     */
     private function runPreTasks($command)
     {
         foreach ($this->preTasks as $preTask) {
@@ -85,6 +110,10 @@ class Commander
         }
     }
 
+    /**
+     * @param $command
+     * @param mixed $result Value returned by the command handler.
+     */
     private function runPostTasks($command, $result)
     {
         foreach ($this->postTasks as $postTask) {
