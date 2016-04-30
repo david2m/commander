@@ -69,13 +69,7 @@ class CommanderTest extends \PHPUnit_Framework_TestCase
         $mockPreTask
             ->expects($this->never())
             ->method('onPreExecute');
-        $this
-            ->fakeOnion
-            ->method('peel')
-            ->willReturnCallback(function($command, \Closure $core)
-            {
-                $core($command);
-            });
+        $this->callCoreOnionFunction();
 
         $this->commander->addPreTask($mockPreTask);
 
@@ -96,13 +90,7 @@ class CommanderTest extends \PHPUnit_Framework_TestCase
             ->expects($this->once())
             ->method('onPreExecute')
             ->with($command);
-        $this
-            ->fakeOnion
-            ->method('peel')
-            ->willReturnCallback(function($command, \Closure $core)
-            {
-                $core($command);
-            });
+        $this->callCoreOnionFunction();
 
         $this->commander->addPreTask($mockPreTask);
 
@@ -121,13 +109,7 @@ class CommanderTest extends \PHPUnit_Framework_TestCase
         $mockPostTask
             ->expects($this->never())
             ->method('onPostExecute');
-        $this
-            ->fakeOnion
-            ->method('peel')
-            ->willReturnCallback(function($command, \Closure $core)
-            {
-                $core($command);
-            });
+        $this->callCoreOnionFunction();
 
         $this->commander->addPostTask($mockPostTask);
 
@@ -149,13 +131,7 @@ class CommanderTest extends \PHPUnit_Framework_TestCase
             ->expects($this->once())
             ->method('onPostExecute')
             ->with($command, $commandHandlerReturnValue);
-        $this
-            ->fakeOnion
-            ->method('peel')
-            ->willReturnCallback(function($command, \Closure $core)
-            {
-                $core($command);
-            });
+        $this->callCoreOnionFunction();
 
         $this->commander->addPostTask($mockPostTask);
 
@@ -173,13 +149,7 @@ class CommanderTest extends \PHPUnit_Framework_TestCase
         $stubCommandHandler
             ->method('handle')
             ->willThrowException(new \LoginException());
-        $this
-            ->fakeOnion
-            ->method('peel')
-            ->willReturnCallback(function($command, \Closure $core)
-            {
-                $core($command);
-            });
+        $this->callCoreOnionFunction();
 
         $this->commander->addExceptionHandler($stubExceptionHandler);
         $this->commander->addHandler($stubCommandHandler);
@@ -198,13 +168,7 @@ class CommanderTest extends \PHPUnit_Framework_TestCase
         $stubCommandHandler
             ->method('handle')
             ->willThrowException(new \LoginException());
-        $this
-            ->fakeOnion
-            ->method('peel')
-            ->willReturnCallback(function($command, \Closure $core)
-            {
-                $core($command);
-            });
+        $this->callCoreOnionFunction();
 
         $this->commander->addExceptionHandler($stubExceptionHandler);
         $this->commander->addHandler($stubCommandHandler);
@@ -237,6 +201,20 @@ class CommanderTest extends \PHPUnit_Framework_TestCase
             ->willReturn($returnValue);
 
         return $stubHandler;
+    }
+
+    /**
+     * Call the core function of the layered onion.
+     */
+    private function callCoreOnionFunction()
+    {
+        $this
+            ->fakeOnion
+            ->method('peel')
+            ->willReturnCallback(function($command, \Closure $core)
+            {
+                $core($command);
+            });
     }
 
     private function getStubExceptionHandler($supportsException, \Exception $throws = null)
