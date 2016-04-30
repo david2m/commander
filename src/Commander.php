@@ -12,6 +12,9 @@ class Commander
     /* @var HandlerInterface[] */
     private $handlers = [];
 
+    /* @var PreTaskInterface[] */
+    private $preTasks = [];
+
     public function __construct(Onion $onion)
     {
         $this->onion = $onion;
@@ -27,6 +30,11 @@ class Commander
         $this->onion->layer(new MiddlewareWrapper($middleware));
     }
 
+    public function addPreTask(PreTaskInterface $preTask)
+    {
+        $this->preTasks[] = $preTask;
+    }
+
     public function execute($command)
     {
         $className = get_class($command);
@@ -38,8 +46,18 @@ class Commander
 
         return $this->onion->peel($command, function($command) use($handler)
         {
+            $this->runPreTasks($command);
             return $handler->handle($command);
         });
+    }
+
+    private function runPreTasks($command)
+    {
+        foreach ($this->preTasks as $preTask) {
+            if ($preTask->supportsCommand($command)) {
+                $preTask->onPreExecute($command);
+            }
+        }
     }
 
 }

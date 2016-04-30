@@ -18,6 +18,12 @@ class CommanderTest extends \PHPUnit_Framework_TestCase
     {
         $this->fakeOnion = $this->getFake('Optimus\Onion\Onion');
         $this->commander = new Commander($this->fakeOnion);
+
+        $stubLoginCommandHandler = $this->getFake('David2M\Commander\HandlerInterface');
+        $stubLoginCommandHandler
+            ->method('getCommandName')
+            ->willReturn('LoginCommand');
+        $this->commander->addHandler($stubLoginCommandHandler);
     }
 
     /**
@@ -53,6 +59,52 @@ class CommanderTest extends \PHPUnit_Framework_TestCase
             });
 
         $this->commander->addHandler($mockHandler);
+
+        $this->commander->execute($command);
+    }
+
+    public function test_shouldNotRunPreTask()
+    {
+        $mockPreTask = $this->getFake('David2M\Commander\PreTaskInterface');
+        $mockPreTask
+            ->method('supportsCommand')
+            ->willReturn(false);
+        $mockPreTask
+            ->expects($this->never())
+            ->method('onPreExecute');
+        $this
+            ->fakeOnion
+            ->method('peel')
+            ->willReturnCallback(function($command, \Closure $core)
+            {
+                $core($command);
+            });
+
+        $this->commander->addPreTask($mockPreTask);
+
+        $this->commander->execute(new \LoginCommand());
+    }
+
+    public function test_shouldRunPreTask()
+    {
+        $command = new \LoginCommand();
+        $mockPreTask = $this->getFake('David2M\Commander\PreTaskInterface');
+        $mockPreTask
+            ->method('supportsCommand')
+            ->willReturn(true);
+        $mockPreTask
+            ->expects($this->once())
+            ->method('onPreExecute')
+            ->with($command);
+        $this
+            ->fakeOnion
+            ->method('peel')
+            ->willReturnCallback(function($command, \Closure $core)
+            {
+                $core($command);
+            });
+
+        $this->commander->addPreTask($mockPreTask);
 
         $this->commander->execute($command);
     }

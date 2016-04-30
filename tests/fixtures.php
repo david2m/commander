@@ -3,3 +3,8 @@ class AddToCartCommand
 {
 
 }
+
+class LoginCommand
+{
+    
+}
