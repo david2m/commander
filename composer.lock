@@ -4,9 +4,42 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "a9a0968432c4a7126dc271c9e2e91e48",
-    "content-hash": "8ca04fe2d3618bcd4cc637f13aaaf440",
-    "packages": [],
+    "hash": "f301501f47e67c76b4a4e5f88cacba58",
+    "content-hash": "adda39851bb981299f306ed2e958cac8",
+    "packages": [
+        {
+            "name": "optimus/onion",
+            "version": "0.1.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/esbenp/onion.git",
+                "reference": "e87d84c8d85f9812238804be7fb3452ad0d2cf3f"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/esbenp/onion/zipball/e87d84c8d85f9812238804be7fb3452ad0d2cf3f",
+                "reference": "e87d84c8d85f9812238804be7fb3452ad0d2cf3f",
+                "shasum": ""
+            },
+            "require-dev": {
+                "mockery/mockery": "0.9.*",
+                "orchestra/testbench": "~3.1",
+                "phpunit/phpunit": "~4.7",
+                "satooshi/php-coveralls": "dev-master@dev"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Optimus\\Onion\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "time": "2015-06-30 23:05:03"
+        }
+    ],
     "packages-dev": [
         {
             "name": "doctrine/instantiator",

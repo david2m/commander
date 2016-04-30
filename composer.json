@@ -10,7 +10,9 @@
             "email": "david2m@hotmail.co.uk"
         }
     ],
-    "require": {},
+    "require": {
+        "optimus/onion": "0.1.*"
+    },
     "autoload": {
         "psr-4": {
             "David2M\\Commander\\": "src/"
