@@ -18,6 +18,9 @@ class Commander
     /* @var PostTaskInterface[] */
     private $postTasks = [];
 
+    /* @var ExceptionHandlerInterface[] */
+    private $exceptionHandlers = [];
+
     public function __construct(Onion $onion)
     {
         $this->onion = $onion;
@@ -43,6 +46,11 @@ class Commander
         $this->postTasks[] = $postTask;
     }
 
+    public function addExceptionHandler(ExceptionHandlerInterface $handler)
+    {
+        $this->exceptionHandlers[] = $handler;
+    }
+
     public function execute($command)
     {
         $className = get_class($command);
@@ -52,14 +60,20 @@ class Commander
             throw new HandlerNotFoundException(sprintf('No command handler found for %s.', $className));
         }
 
-        return $this->onion->peel($command, function($command) use($handler)
-        {
-            $this->runPreTasks($command);
-            $result = $handler->handle($command);
-            $this->runPostTasks($command, $result);
+        try {
+            return $this->onion->peel($command, function($command) use($handler)
+            {
+                $this->runPreTasks($command);
+                $result = $handler->handle($command);
+                $this->runPostTasks($command, $result);
 
-            return $result;
-        });
+                return $result;
+            });
+        }
+        catch (\Exception $ex) {
+            $this->handleException($ex);
+            throw $ex;
+        }
     }
 
     private function runPreTasks($command)
@@ -76,6 +90,20 @@ class Commander
         foreach ($this->postTasks as $postTask) {
             if ($postTask->supportsCommand($command)) {
                 $postTask->onPostExecute($command, $result);
+            }
+        }
+    }
+
+    /**
+     * @param \Exception $ex
+     *
+     * @throws \Exception
+     */
+    private function handleException(\Exception $ex)
+    {
+        foreach ($this->exceptionHandlers as $exceptionHandler) {
+            if ($exceptionHandler->supportsException($ex)) {
+                $exceptionHandler->handle($ex);
             }
         }
     }

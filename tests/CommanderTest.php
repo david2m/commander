@@ -18,15 +18,6 @@ class CommanderTest extends \PHPUnit_Framework_TestCase
     {
         $this->fakeOnion = $this->getFake('Optimus\Onion\Onion');
         $this->commander = new Commander($this->fakeOnion);
-
-        $stubLoginCommandHandler = $this->getFake('David2M\Commander\HandlerInterface');
-        $stubLoginCommandHandler
-            ->method('getCommandName')
-            ->willReturn('LoginCommand');
-        $stubLoginCommandHandler
-            ->method('handle')
-            ->willReturn(true);
-        $this->commander->addHandler($stubLoginCommandHandler);
     }
 
     /**
@@ -68,6 +59,9 @@ class CommanderTest extends \PHPUnit_Framework_TestCase
 
     public function test_shouldNotRunPreTask()
     {
+        $stubCommandHandler = $this->getStubCommandHandler('LoginCommand', true);
+        $this->commander->addHandler($stubCommandHandler);
+
         $mockPreTask = $this->getFake('David2M\Commander\PreTaskInterface');
         $mockPreTask
             ->method('supportsCommand')
@@ -90,6 +84,9 @@ class CommanderTest extends \PHPUnit_Framework_TestCase
 
     public function test_shouldRunPreTask()
     {
+        $stubCommandHandler = $this->getStubCommandHandler('LoginCommand', true);
+        $this->commander->addHandler($stubCommandHandler);
+
         $command = new \LoginCommand();
         $mockPreTask = $this->getFake('David2M\Commander\PreTaskInterface');
         $mockPreTask
@@ -114,6 +111,9 @@ class CommanderTest extends \PHPUnit_Framework_TestCase
 
     public function test_shouldNotRunPostTask()
     {
+        $stubCommandHandler = $this->getStubCommandHandler('LoginCommand', true);
+        $this->commander->addHandler($stubCommandHandler);
+
         $mockPostTask = $this->getFake('David2M\Commander\PostTaskInterface');
         $mockPostTask
             ->method('supportsCommand')
@@ -136,6 +136,10 @@ class CommanderTest extends \PHPUnit_Framework_TestCase
 
     public function test_shouldRunPostTask()
     {
+        $commandHandlerReturnValue = true;
+        $stubCommandHandler = $this->getStubCommandHandler('LoginCommand', $commandHandlerReturnValue);
+        $this->commander->addHandler($stubCommandHandler);
+
         $command = new \LoginCommand();
         $mockPostTask = $this->getFake('David2M\Commander\PostTaskInterface');
         $mockPostTask
@@ -144,7 +148,7 @@ class CommanderTest extends \PHPUnit_Framework_TestCase
         $mockPostTask
             ->expects($this->once())
             ->method('onPostExecute')
-            ->with($command, true);
+            ->with($command, $commandHandlerReturnValue);
         $this
             ->fakeOnion
             ->method('peel')
@@ -159,6 +163,56 @@ class CommanderTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
+     * @expectedException \LoginException
+     */
+    public function test_addedExceptionHandlerShouldNotHandleException()
+    {
+        $stubExceptionHandler = $this->getStubExceptionHandler(false);
+
+        $stubCommandHandler = $this->getStubCommandHandler('LoginCommand', null);
+        $stubCommandHandler
+            ->method('handle')
+            ->willThrowException(new \LoginException());
+        $this
+            ->fakeOnion
+            ->method('peel')
+            ->willReturnCallback(function($command, \Closure $core)
+            {
+                $core($command);
+            });
+
+        $this->commander->addExceptionHandler($stubExceptionHandler);
+        $this->commander->addHandler($stubCommandHandler);
+        
+        $this->commander->execute(new \LoginCommand());
+    }
+
+    /**
+     * @expectedException \GenericException
+     */
+    public function test_addedExceptionHandlerShouldHandleException()
+    {
+        $stubExceptionHandler = $this->getStubExceptionHandler(true, new \GenericException());
+
+        $stubCommandHandler = $this->getStubCommandHandler('LoginCommand', null);
+        $stubCommandHandler
+            ->method('handle')
+            ->willThrowException(new \LoginException());
+        $this
+            ->fakeOnion
+            ->method('peel')
+            ->willReturnCallback(function($command, \Closure $core)
+            {
+                $core($command);
+            });
+
+        $this->commander->addExceptionHandler($stubExceptionHandler);
+        $this->commander->addHandler($stubCommandHandler);
+
+        $this->commander->execute(new \LoginCommand());
+    }
+
+    /**
      * @param string $className
      *
      * @return \PHPUnit_Framework_MockObject_MockObject
@@ -169,6 +223,36 @@ class CommanderTest extends \PHPUnit_Framework_TestCase
             ->getMockBuilder($className)
             ->disableOriginalConstructor()
             ->getMock();
+    }
+
+    private function getStubCommandHandler($commandName, $returnValue = null)
+    {
+        $stubHandler = $this->getFake('David2M\Commander\HandlerInterface');
+        $stubHandler
+            ->method('getCommandName')
+            ->willReturn($commandName);
+
+        $stubHandler
+            ->method('handle')
+            ->willReturn($returnValue);
+
+        return $stubHandler;
+    }
+
+    private function getStubExceptionHandler($supportsException, \Exception $throws = null)
+    {
+        $stubHandler = $this->getFake('David2M\Commander\ExceptionHandlerInterface');
+        $stubHandler
+            ->method('supportsException')
+            ->willReturn($supportsException);
+
+        if ($throws) {
+            $stubHandler
+                ->method('handle')
+                ->willThrowException(new \GenericException());
+        }
+
+        return $stubHandler;
     }
 
 }
