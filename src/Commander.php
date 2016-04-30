@@ -15,6 +15,9 @@ class Commander
     /* @var PreTaskInterface[] */
     private $preTasks = [];
 
+    /* @var PostTaskInterface[] */
+    private $postTasks = [];
+
     public function __construct(Onion $onion)
     {
         $this->onion = $onion;
@@ -35,6 +38,11 @@ class Commander
         $this->preTasks[] = $preTask;
     }
 
+    public function addPostTask(PostTaskInterface $postTask)
+    {
+        $this->postTasks[] = $postTask;
+    }
+
     public function execute($command)
     {
         $className = get_class($command);
@@ -47,7 +55,10 @@ class Commander
         return $this->onion->peel($command, function($command) use($handler)
         {
             $this->runPreTasks($command);
-            return $handler->handle($command);
+            $result = $handler->handle($command);
+            $this->runPostTasks($command, $result);
+
+            return $result;
         });
     }
 
@@ -56,6 +67,15 @@ class Commander
         foreach ($this->preTasks as $preTask) {
             if ($preTask->supportsCommand($command)) {
                 $preTask->onPreExecute($command);
+            }
+        }
+    }
+
+    private function runPostTasks($command, $result)
+    {
+        foreach ($this->postTasks as $postTask) {
+            if ($postTask->supportsCommand($command)) {
+                $postTask->onPostExecute($command, $result);
             }
         }
     }

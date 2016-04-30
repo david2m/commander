@@ -23,6 +23,9 @@ class CommanderTest extends \PHPUnit_Framework_TestCase
         $stubLoginCommandHandler
             ->method('getCommandName')
             ->willReturn('LoginCommand');
+        $stubLoginCommandHandler
+            ->method('handle')
+            ->willReturn(true);
         $this->commander->addHandler($stubLoginCommandHandler);
     }
 
@@ -105,6 +108,52 @@ class CommanderTest extends \PHPUnit_Framework_TestCase
             });
 
         $this->commander->addPreTask($mockPreTask);
+
+        $this->commander->execute($command);
+    }
+
+    public function test_shouldNotRunPostTask()
+    {
+        $mockPostTask = $this->getFake('David2M\Commander\PostTaskInterface');
+        $mockPostTask
+            ->method('supportsCommand')
+            ->willReturn(false);
+        $mockPostTask
+            ->expects($this->never())
+            ->method('onPostExecute');
+        $this
+            ->fakeOnion
+            ->method('peel')
+            ->willReturnCallback(function($command, \Closure $core)
+            {
+                $core($command);
+            });
+
+        $this->commander->addPostTask($mockPostTask);
+
+        $this->commander->execute(new \LoginCommand());
+    }
+
+    public function test_shouldRunPostTask()
+    {
+        $command = new \LoginCommand();
+        $mockPostTask = $this->getFake('David2M\Commander\PostTaskInterface');
+        $mockPostTask
+            ->method('supportsCommand')
+            ->willReturn(true);
+        $mockPostTask
+            ->expects($this->once())
+            ->method('onPostExecute')
+            ->with($command, true);
+        $this
+            ->fakeOnion
+            ->method('peel')
+            ->willReturnCallback(function($command, \Closure $core)
+            {
+                $core($command);
+            });
+
+        $this->commander->addPostTask($mockPostTask);
 
         $this->commander->execute($command);
     }
