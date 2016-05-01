@@ -39,7 +39,7 @@ class Commander
      */
     public function addMiddleware(MiddlewareInterface $middleware)
     {
-        $this->onion->layer(new MiddlewareWrapper($middleware));
+        $this->onion = $this->onion->layer(new MiddlewareWrapper($middleware));
     }
 
     /**
